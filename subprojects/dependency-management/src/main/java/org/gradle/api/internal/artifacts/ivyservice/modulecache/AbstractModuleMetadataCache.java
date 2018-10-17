@@ -51,7 +51,7 @@ public abstract class AbstractModuleMetadataCache implements ModuleMetadataCache
         return cachedMetaData;
     }
 
-    private ModuleComponentAtRepositoryKey createKey(ModuleMetadataDetails details) {
+    protected ModuleComponentAtRepositoryKey createKey(ModuleMetadataDetails details) {
         return new ModuleComponentAtRepositoryKey(details.getRepository().getId(), details.getModuleComponentIdentifier());
     }
 

@@ -17,14 +17,17 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
+import org.gradle.internal.hash.HashCode;
 
 public class DefaultModuleMetadataCacheDetails implements ModuleMetadataCache.ModuleMetadataDetails {
     private final ModuleComponentRepository repository;
     private final ModuleComponentIdentifier id;
+    private final HashCode rulesHash;
 
-    public DefaultModuleMetadataCacheDetails(ModuleComponentRepository repository, ModuleComponentIdentifier id) {
+    public DefaultModuleMetadataCacheDetails(ModuleComponentRepository repository, ModuleComponentIdentifier id, HashCode rulesHash) {
         this.repository = repository;
         this.id = id;
+        this.rulesHash = rulesHash;
     }
 
     @Override
@@ -35,5 +38,10 @@ public class DefaultModuleMetadataCacheDetails implements ModuleMetadataCache.Mo
     @Override
     public ModuleComponentIdentifier getModuleComponentIdentifier() {
         return id;
+    }
+
+    @Override
+    public HashCode getRulesHash() {
+        return rulesHash;
     }
 }

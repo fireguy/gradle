@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 
@@ -33,6 +34,7 @@ public interface ModuleMetadataCache {
     interface ModuleMetadataDetails {
         ModuleComponentRepository getRepository();
         ModuleComponentIdentifier getModuleComponentIdentifier();
+        HashCode getRulesHash();
     }
 
     interface CachedMetadata {

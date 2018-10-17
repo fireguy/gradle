@@ -187,7 +187,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         private void resolveComponentMetaDataFromCache(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
-            ModuleMetadataCache.ModuleMetadataDetails details = new DefaultModuleMetadataCacheDetails(delegate, moduleComponentIdentifier);
+            ModuleMetadataCache.ModuleMetadataDetails details = new DefaultModuleMetadataCacheDetails(delegate, moduleComponentIdentifier, metadataProcessor.getRulesHash());
             ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.getCachedModuleDescriptor(details);
             if (cachedMetadata == null) {
                 return;
@@ -294,7 +294,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         @Override
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
-            ModuleMetadataCache.ModuleMetadataDetails details = new DefaultModuleMetadataCacheDetails(delegate, moduleComponentIdentifier);
+            ModuleMetadataCache.ModuleMetadataDetails details = new DefaultModuleMetadataCacheDetails(delegate, moduleComponentIdentifier, metadataProcessor.getRulesHash());
             ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.getCachedModuleDescriptor(details);
             if (cachedMetadata == null) {
                 return estimateCostViaRemoteAccess(moduleComponentIdentifier);
@@ -373,7 +373,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         @Override
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
             ComponentOverrideMetadata forced = requestMetaData.withChanging();
-            ModuleMetadataCache.ModuleMetadataDetails details = new DefaultModuleMetadataCacheDetails(delegate, moduleComponentIdentifier);
+            ModuleMetadataCache.ModuleMetadataDetails details = new DefaultModuleMetadataCacheDetails(delegate, moduleComponentIdentifier, metadataProcessor.getRulesHash());
             delegate.getRemoteAccess().resolveComponentMetaData(moduleComponentIdentifier, forced, result);
             switch (result.getState()) {
                 case Missing:
