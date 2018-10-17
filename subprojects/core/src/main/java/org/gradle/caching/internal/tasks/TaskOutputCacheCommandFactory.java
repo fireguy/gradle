@@ -25,7 +25,6 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -33,6 +32,7 @@ import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
@@ -69,8 +69,8 @@ public class TaskOutputCacheCommandFactory {
         this.stringInterner = stringInterner;
     }
 
-    public BuildCacheLoadCommand<OriginTaskExecutionMetadata> createLoad(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskProperties taskProperties, TaskOutputChangesListener taskOutputChangesListener, TaskArtifactState taskArtifactState) {
-        return new LoadCommand(cacheKey, outputProperties, task, taskProperties, taskOutputChangesListener, taskArtifactState);
+    public BuildCacheLoadCommand<OriginTaskExecutionMetadata> createLoad(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskProperties taskProperties, OutputChangeListener outputChangeListener, TaskArtifactState taskArtifactState) {
+        return new LoadCommand(cacheKey, outputProperties, task, taskProperties, outputChangeListener, taskArtifactState);
     }
 
     public BuildCacheStoreCommand createStore(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, CurrentFileCollectionFingerprint> outputFingerprints, TaskInternal task, long taskExecutionTime) {
@@ -83,15 +83,15 @@ public class TaskOutputCacheCommandFactory {
         private final SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties;
         private final TaskInternal task;
         private final TaskProperties taskProperties;
-        private final TaskOutputChangesListener taskOutputChangesListener;
+        private final OutputChangeListener outputChangeListener;
         private final TaskArtifactState taskArtifactState;
 
-        private LoadCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskProperties taskProperties, TaskOutputChangesListener taskOutputChangesListener, TaskArtifactState taskArtifactState) {
+        private LoadCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskProperties taskProperties, OutputChangeListener outputChangeListener, TaskArtifactState taskArtifactState) {
             this.cacheKey = cacheKey;
             this.outputProperties = outputProperties;
             this.task = task;
             this.taskProperties = taskProperties;
-            this.taskOutputChangesListener = taskOutputChangesListener;
+            this.outputChangeListener = outputChangeListener;
             this.taskArtifactState = taskArtifactState;
         }
 
@@ -102,7 +102,7 @@ public class TaskOutputCacheCommandFactory {
 
         @Override
         public BuildCacheLoadCommand.Result<OriginTaskExecutionMetadata> load(InputStream input) {
-            taskOutputChangesListener.beforeTaskOutputChanged();
+            outputChangeListener.beforeOutputChange();
             final TaskOutputPacker.UnpackResult unpackResult;
             try {
                 unpackResult = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));

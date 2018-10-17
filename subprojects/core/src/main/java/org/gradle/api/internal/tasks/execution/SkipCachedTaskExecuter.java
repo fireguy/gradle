@@ -31,6 +31,7 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.caching.internal.tasks.UnrecoverableTaskOutputUnpackingException;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,16 +44,16 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
     private final BuildCacheController buildCache;
     private final TaskExecuter delegate;
-    private final TaskOutputChangesListener taskOutputChangesListener;
+    private final OutputChangeListener outputChangeListener;
     private final TaskOutputCacheCommandFactory buildCacheCommandFactory;
 
     public SkipCachedTaskExecuter(
         BuildCacheController buildCache,
-        TaskOutputChangesListener taskOutputChangesListener,
+        OutputChangeListener outputChangeListener,
         TaskOutputCacheCommandFactory buildCacheCommandFactory,
         TaskExecuter delegate
     ) {
-        this.taskOutputChangesListener = taskOutputChangesListener;
+        this.outputChangeListener = outputChangeListener;
         this.buildCacheCommandFactory = buildCacheCommandFactory;
         this.buildCache = buildCache;
         this.delegate = delegate;
@@ -78,7 +79,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             if (taskState.isAllowedToUseCachedResults()) {
                 try {
                     OriginTaskExecutionMetadata originMetadata = buildCache.load(
-                        buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskProperties, taskOutputChangesListener, taskState)
+                        buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskProperties, outputChangeListener, taskState)
                     );
                     if (originMetadata != null) {
                         state.setOutcome(TaskExecutionOutcome.FROM_CACHE);

@@ -26,9 +26,9 @@ import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.OutputType
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
-import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener
 import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
+import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
@@ -55,7 +55,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     def key = Mock(TaskOutputCachingBuildCacheKey)
     def taskProperties = Mock(TaskProperties)
     def task = Mock(TaskInternal)
-    def taskOutputsGenerationListener = Mock(TaskOutputChangesListener)
+    def outputsChangeListener = Mock(OutputChangeListener)
     def taskArtifactState = Mock(TaskArtifactState)
     def timer = Stub(Timer)
 
@@ -75,7 +75,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
             prop("outputDir", DIRECTORY, outputDir),
             prop("outputFile", FILE, outputFile),
         ] as SortedSet
-        def load = commandFactory.createLoad(key, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState)
+        def load = commandFactory.createLoad(key, outputProperties, task, taskProperties, outputsChangeListener, taskArtifactState)
 
         def outputFileSnapshot = new RegularFileSnapshot(outputFile.absolutePath, outputFile.name, HashCode.fromInt(234), 234)
         def fileSnapshots = ImmutableMap.of(
@@ -86,7 +86,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         def result = load.load(input)
 
         then:
-        1 * taskOutputsGenerationListener.beforeTaskOutputChanged()
+        1 * outputsChangeListener.beforeOutputChange()
         1 * originFactory.createReader(task)
 
         then:
@@ -127,13 +127,13 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         def input = Mock(InputStream)
         def outputFile = temporaryFolder.file("output.txt")
         def outputProperties = props("output", FILE, outputFile)
-        def command = commandFactory.createLoad(key, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState)
+        def command = commandFactory.createLoad(key, outputProperties, task, taskProperties, outputsChangeListener, taskArtifactState)
 
         when:
         command.load(input)
 
         then:
-        1 * taskOutputsGenerationListener.beforeTaskOutputChanged()
+        1 * outputsChangeListener.beforeOutputChange()
         1 * originFactory.createReader(task)
 
         then:
@@ -162,13 +162,13 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     def "error during cleanup of failed unpacking is reported"() {
         def input = Mock(InputStream)
         def outputProperties = Mock(SortedSet)
-        def command = commandFactory.createLoad(key, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState)
+        def command = commandFactory.createLoad(key, outputProperties, task, taskProperties, outputsChangeListener, taskArtifactState)
 
         when:
         command.load(input)
 
         then:
-        1 * taskOutputsGenerationListener.beforeTaskOutputChanged()
+        1 * outputsChangeListener.beforeOutputChange()
         1 * originFactory.createReader(task)
 
         then:

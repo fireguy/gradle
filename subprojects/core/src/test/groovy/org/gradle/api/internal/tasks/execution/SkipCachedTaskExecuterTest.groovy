@@ -32,6 +32,7 @@ import org.gradle.caching.internal.controller.BuildCacheStoreCommand
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.caching.internal.tasks.UnrecoverableTaskOutputUnpackingException
+import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.id.UniqueId
 import spock.lang.Specification
 
@@ -47,13 +48,13 @@ class SkipCachedTaskExecuterTest extends Specification {
     def taskArtifactState = Mock(TaskArtifactState)
     def buildCacheController = Mock(BuildCacheController)
     def cacheKey = Mock(TaskOutputCachingBuildCacheKey)
-    def taskOutputGenerationListener = Mock(TaskOutputChangesListener)
+    def outputChangeListener = Mock(OutputChangeListener)
     def loadCommand = Mock(BuildCacheLoadCommand)
     def storeCommand = Mock(BuildCacheStoreCommand)
     def buildCacheCommandFactory = Mock(TaskOutputCacheCommandFactory)
     def outputFingerprints = [:]
 
-    def executer = new SkipCachedTaskExecuter(buildCacheController, taskOutputGenerationListener, buildCacheCommandFactory, delegate)
+    def executer = new SkipCachedTaskExecuter(buildCacheController, outputChangeListener, buildCacheCommandFactory, delegate)
 
     def "skip task when cached results exist"() {
         def originId = UniqueId.generate()
@@ -74,7 +75,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
-        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskProperties, taskOutputGenerationListener, _) >> loadCommand
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskProperties, outputChangeListener, _) >> loadCommand
 
         then:
         1 * buildCacheController.load(loadCommand) >> metadata
@@ -100,7 +101,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
-        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskProperties, taskOutputGenerationListener, _) >> loadCommand
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskProperties, outputChangeListener, _) >> loadCommand
 
         then:
         1 * buildCacheController.load(loadCommand) >> null
