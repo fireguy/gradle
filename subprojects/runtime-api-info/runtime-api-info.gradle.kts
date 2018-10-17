@@ -26,13 +26,19 @@ gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }
 
+val gradleApi by configurations.creating {
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+    attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "true")
+}
+
+dependencies {
+    listOf(":", ":core", ":dependencyManagement", ":pluginUse", ":toolingApi").forEach {
+        add(gradleApi.name, project(it))
+    }
+}
+
 val generateGradleApiPackageList = tasks.register<PackageListGenerator>("generateGradleApiPackageList") {
-    classpath = files(
-        rootProject.configurations["externalModules"],
-        listOf(":core", ":dependencyManagement", ":pluginUse", ":toolingApi").map {
-            project(it).configurations.runtimeClasspath
-        },
-        project(":").configurations["gradlePlugins"])
+    classpath = gradleApi
     outputFile = file("$runtimeShadedPath/api-relocated.txt")
 }
 

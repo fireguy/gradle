@@ -246,6 +246,13 @@ val testRuntime by configurations.creating {
     extendsFrom(gradlePlugins)
 }
 
+val gradleApi by configurations.creating {
+    isVisible = false
+    extendsFrom(gradlePlugins)
+    extendsFrom(externalModules)
+    attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "true")
+}
+
 configurations {
     all {
         usage(Usage.JAVA_RUNTIME)
